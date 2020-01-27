@@ -68,7 +68,6 @@ jobs:
     steps:
       - push-setup
       - run: |
-          source $BASH_ENV
           make load
           make push
 
