@@ -14,10 +14,10 @@ test-docker: build-docker
 	container-structure-test test --image $(REGISTRY)/$(NAME):latest --config tests/docker/container-structure-test.yaml
 
 save:
-        docker save $(REGISTRY)/$(NAME):latest -o $(NAME)_latest.tar
+	docker save $(REGISTRY)/$(NAME):latest -o $(NAME)_latest.tar
 
 load:
-        docker load -i $(NAME)_latest.tar
+	docker load -i $(NAME)_latest.tar
 
 push:
 	docker push $(REGISTRY)/$(NAME):latest
