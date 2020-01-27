@@ -10,8 +10,14 @@ build-app:
 build-docker:
 	docker build -t $(REGISTRY)/$(NAME):latest .
 
-test:
-	container-structure-test test --image $(REGISTRY)/$(NAME):$(BUMPED_VERSION) --config tests/container-structure-test.yaml
+test-docker: build-docker
+	container-structure-test test --image $(REGISTRY)/$(NAME):latest --config tests/docker/container-structure-test.yaml
+
+save:
+        docker save $(REGISTRY)/$(NAME):latest -o $(NAME)_latest.tar
+
+load:
+        docker load -i $(NAME)_latest.tar
 
 push:
 	docker push $(REGISTRY)/$(NAME):latest

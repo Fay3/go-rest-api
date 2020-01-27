@@ -1,0 +1,88 @@
+version: 2.1
+executors:
+  lint:
+    docker:
+      - image: hadolint/hadolint:v1.16.0-debian
+
+  go:
+    docker:
+      - image: golang:1.13.6-alpine3.10
+
+commands:
+  push-setup:
+    description: "Setup a machine to do Docker pushes"
+    steps:
+      - run: apk add --no-cache build-base docker ca-certificates
+      - setup_remote_docker:
+          version: 18.06.0-ce
+      - checkout
+      - attach_workspace:
+          at: ./
+      - run: |
+          mkdir ~/.docker
+          echo '{"experimental": "enabled"}' > ~/.docker/config.json
+          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$REGISTRY"
+
+  test-setup:
+    description: "Setup a machine to do container structure tests"
+    steps:
+      - run: |
+          curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && \
+          chmod +x container-structure-test-linux-amd64 && \
+          sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+
+jobs:
+  lint:
+    executor: lint
+    steps:
+      - checkout
+      - run: |
+          hadolint Dockerfile
+
+  test:
+    executor: go
+    steps:
+      - checkout
+      - run: |
+          go test ./...
+
+  build:
+    docker:
+      - image: alpine:3.9
+    steps:
+      - checkout
+      - test-setup
+      - run: |
+          make build-docker
+          make test-docker
+          make save
+      - persist_to_workspace:
+          root: ./
+          paths: ./
+
+  push:
+    docker:
+      - image: alpine:3.9
+    steps:
+      - push-setup
+      - run: |
+          source $BASH_ENV
+          make load
+          make push
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - lint
+      - test
+      - build:
+          requires:
+            - lint
+            - test
+      - push:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
