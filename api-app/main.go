@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
 	"unicode"
 
 	"github.com/gorilla/mux"
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -41,7 +39,7 @@ func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	var user User
 	json.NewDecoder(request.Body).Decode(&user)
-	collection := client.Database("happybirthday").Collection("users")
+	collection := client.Database("birthdayDB").Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	result, _ := collection.InsertOne(ctx, user)
 	json.NewEncoder(response).Encode(result)
@@ -52,7 +50,7 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	username, _ := (params["username"])
 	var user User
-	collection := client.Database("happybirthday").Collection("users")
+	collection := client.Database("birthdayDB").Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	filter := bson.M{"username": username}
 	json.NewDecoder(request.Body).Decode(&user)
@@ -60,7 +58,7 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	usercheck := (IsLetter(username))
 
 	if usercheck == false {
-		response.WriteHeader(http.StatusInternalServerError)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 		response.Write([]byte(`{ "message": " ` + username + ` must contains only letters}`))
 		return
 	}
@@ -69,7 +67,7 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	dobcheck := re.MatchString(user.DOB)
 
 	if dobcheck == false {
-		response.WriteHeader(http.StatusInternalServerError)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 		response.Write([]byte(`{ "message": " ` + user.DOB + ` YYYY-MM-DD must be the date format}`))
 		return
 	}
@@ -80,8 +78,8 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	diff := then.Sub(date)
 	days_int := int(diff.Hours() / 24)
 
-	if days_int == 0 {
-		response.WriteHeader(http.StatusInternalServerError)
+	if days_int >= 0 {
+		response.WriteHeader(http.StatusUnprocessableEntity)
 		response.Write([]byte(`{ "message": " ` + user.DOB + ` must be a date before todays date}`))
 		return
 	}
@@ -102,12 +100,6 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// if err != nil {
-	// 	response.WriteHeader(http.StatusInternalServerError)
-	// 	response.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-	// 	return
-	// }
-
 	user.Username = username
 	response.WriteHeader(http.StatusNoContent)
 	json.NewEncoder(response).Encode(user)
@@ -118,7 +110,7 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	username, _ := (params["username"])
 	var user User
-	collection := client.Database("happybirthday").Collection("users")
+	collection := client.Database("birthdayDB").Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err := collection.FindOne(ctx, User{Username: username}).Decode(&user)
 	if err != nil {
@@ -130,7 +122,7 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	date := time.Now()
 	format := "2006-01-02"
 	then, _ := time.Parse(format, user.DOB)
-	diff := then.Sub(date)
+	diff := date.Sub(then)
 	days_int := int(diff.Hours() / 24)
 	days_str := strconv.Itoa(int(diff.Hours() / 24))
 
@@ -145,8 +137,9 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 func main() {
 	fmt.Println("starting the application...")
+	dbhost := os.Getenv("DB_URI")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	client, _ = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, _ = mongo.Connect(ctx, options.Client().ApplyURI(dbhost))
 	router := mux.NewRouter()
 	router.HandleFunc("/hello", CreateUserEndpoint).Methods("POST")
 	router.HandleFunc("/hello/{username}", GetUserEndpoint).Methods("GET")
