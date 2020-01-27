@@ -1,6 +1,6 @@
 FROM golang:1.13.6-alpine3.10 as go
 
-RUN apk --no-cache add git build-base unzip
+RUN apk --no-cache add build-base=0.4-r1
 
 WORKDIR /src
 

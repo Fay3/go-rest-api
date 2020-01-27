@@ -75,11 +75,11 @@ workflows:
   build:
     jobs:
       - lint
-      - test
+      #     - test
       - build:
           requires:
             - lint
-            - test
+      #           - test
       - push:
           requires:
             - build
