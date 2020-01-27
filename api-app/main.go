@@ -59,7 +59,7 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	if usercheck == false {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		response.Write([]byte(`{ "message": " ` + username + ` must contains only letters}`))
+		response.Write([]byte(`{ "message": " ` + username + ` must contains only letters"}`))
 		return
 	}
 
@@ -68,19 +68,25 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	if dobcheck == false {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		response.Write([]byte(`{ "message": " ` + user.DOB + ` YYYY-MM-DD must be the date format}`))
+		response.Write([]byte(`{ "message": " ` + user.DOB + ` YYYY-MM-DD must be the date format"}`))
 		return
 	}
 
 	date := time.Now()
 	format := "2006-01-02"
 	then, _ := time.Parse(format, user.DOB)
-	diff := then.Sub(date)
-	days_int := int(diff.Hours() / 24)
+	diff := date.Sub(then)
+	daysInt := int(diff.Hours() / 24)
 
-	if days_int >= 0 {
+	// date := time.Now()
+	// format := "2006-01-02"
+	// then, _ := time.Parse(format, user.DOB)
+	// diff := then.Sub(date)
+	// daysInt := int(diff.Hours() / 24)
+
+	if daysInt <= 0 {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		response.Write([]byte(`{ "message": " ` + user.DOB + ` must be a date before todays date}`))
+		response.Write([]byte(`{ "message": " ` + user.DOB + ` must be a date before todays date"}`))
 		return
 	}
 
@@ -119,19 +125,43 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	// date := time.Now()
+	// format := "2006-01-02"
+	// then, _ := time.Parse(format, user.DOB)
+	// diff := date.Sub(then)
+	// daysInt := int(diff.Hours() / 24)
+	// daysStr := strconv.Itoa(int(diff.Hours() / 24))
+
 	date := time.Now()
 	format := "2006-01-02"
-	then, _ := time.Parse(format, user.DOB)
-	diff := date.Sub(then)
-	days_int := int(diff.Hours() / 24)
-	days_str := strconv.Itoa(int(diff.Hours() / 24))
+	curYear := date.Year()
+	strEx, _ := time.Parse(format, user.DOB)
+	strExfmt := strEx.Format(format)
+	dobYear := strEx.Year()
+	sdobYear := strconv.Itoa(dobYear)
+	reStr := regexp.MustCompile("^(.*?)" + sdobYear + "(.*)$")
+	repStr := fmt.Sprintf("${1}%d$2", curYear)
+	output := reStr.ReplaceAllString(strExfmt, repStr)
+	then, _ := time.Parse(format, output)
+	diff := then.Sub(date)
+	daysInt := int(diff.Hours() / 24)
+	daysStr := strconv.Itoa(int(diff.Hours() / 24))
 
-	if days_int == 0 {
-		response.Write([]byte(`{ "message": "Hello, ` + username + `! Happy Birthday}`))
+	if daysInt == 0 {
+		response.Write([]byte(`{ "message": "Hello, ` + username + `! Happy Birthday"}`))
 		return
 	}
 
-	response.Write([]byte(`{ "message": "Hello, ` + username + ` your birthday is in ` + days_str + ` day(s)"}`))
+	if daysInt < 0 {
+		pastDate := then.AddDate(1, 0, 0)
+		diff := pastDate.Sub(date)
+		daysStr := strconv.Itoa(int(diff.Hours() / 24))
+
+		response.Write([]byte(`{ "message": "Hello, ` + username + ` your birthday is in ` + daysStr + ` day(s)"}`))
+		return
+	}
+
+	response.Write([]byte(`{ "message": "Hello, ` + username + ` your birthday is in ` + daysStr + ` day(s)"}`))
 	return
 }
 
