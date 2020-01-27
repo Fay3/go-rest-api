@@ -21,7 +21,7 @@ commands:
       - run: |
           mkdir ~/.docker
           echo '{"experimental": "enabled"}' > ~/.docker/config.json
-          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$REGISTRY"
+          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
   test-setup:
     description: "Setup a machine to do container structure tests"
