@@ -9,11 +9,14 @@ build: build-app
 build-app:
 	go build -o ./bin/api-app ./api-app
 
+build-local:
+	docker-compose up
+
 build-docker:
 	docker build -t $(REGISTRY)/$(NAME):${CIRCLE_SHA1} -t $(ECR_REGISTRY_URL)/$(NAME):${CIRCLE_SHA1} .
 
 test-docker: build-docker
-	container-structure-test test --image $(REGISTRY)/$(NAME):latest --config tests/docker/container-structure-test.yaml
+	container-structure-test test --image $(REGISTRY)/$(NAME):${CIRCLE_SHA1} --config tests/docker/container-structure-test.yaml
 
 save:
 	docker save $(REGISTRY)/$(NAME):${CIRCLE_SHA1} -o $(NAME)_latest.tar
