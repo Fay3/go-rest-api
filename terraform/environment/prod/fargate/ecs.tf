@@ -20,8 +20,8 @@ resource "aws_ecs_task_definition" "task_def" {
         ],
         "portMappings": [
             {
-                "containerPort": 300,
-                "hostPort": 300
+                "containerPort": 3000,
+                "hostPort": 3000
             }
         ],
         "memory": 512,
@@ -30,13 +30,13 @@ resource "aws_ecs_task_definition" "task_def" {
         "environment": [
             {
                 "name": "DB_URI",
-                "value": "production"
+                "value": "${var.DB_URI}"
             }
         ],
         "logConfiguration": {
           "logDriver": "awslogs",
           "options": {
-            "awslogs-group": "${var.name}-log-group}",
+            "awslogs-group": "${var.name}-log-group",
             "awslogs-region": "eu-west-1",
             "awslogs-stream-prefix": "ecs"
             }

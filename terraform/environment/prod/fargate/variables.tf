@@ -50,3 +50,7 @@ variable "service_name" {
 variable "s3_log_bucket_name" {
   description = "(Required) The name of the s3 log bucket"
 }
+
+variable "DB_URI" {
+  description = "(Required) The mongodb uri connection string"
+}

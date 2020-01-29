@@ -7,12 +7,12 @@ resource "aws_alb" "app_lb" {
 
   access_logs {
     bucket  = "${var.name}-alb-logs"
-    prefix  = "alb-log"
+    prefix  = "logs"
     enabled = true
   }
 
   depends_on = [
-    "aws_s3_bucket.alb_log_bucket",
+    "aws_s3_bucket_policy.alb_log_bucket_policy",
   ]
 
 }
@@ -23,6 +23,21 @@ resource "aws_alb_target_group" "alb_tg" {
   protocol    = "HTTP"
   vpc_id      = "${aws_vpc.vpc.id}"
   target_type = "ip"
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = "${aws_alb.app_lb.0.id}"
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
 }
 
 resource "aws_alb_listener" "alb_ln" {
@@ -69,6 +84,9 @@ resource "aws_s3_bucket" "alb_log_bucket" {
   }
 }
 
+
+data "aws_elb_service_account" "main" {}
+
 resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
   bucket = "${aws_s3_bucket.alb_log_bucket.id}"
 
@@ -79,7 +97,9 @@ resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
        {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::${var.aws_account_id}:root"
+                "AWS": [
+                  "${data.aws_elb_service_account.main.arn}"
+                ]
             },
             "Action": [
                 "s3:PutObject"
