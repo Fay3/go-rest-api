@@ -9,15 +9,36 @@ resource "aws_ecs_task_definition" "task_def" {
   cpu                      = "256"
   memory                   = "512"
 
-  container_definitions = "${file("task-definitions/service.json")}"
-
+  container_definitions = <<DEFINITION
+[
+    {
+        "name": "go-rest-api-prod",
+        "image": "${var.aws_account_id}.dkr.ecr.eu-west-1.amazonaws.com/go-rest-api-demo:latest",
+        "portMappings": [
+            {
+                "containerPort": 300,
+                "hostPort": 300
+            }
+        ],
+        "memory": 512,
+        "cpu": 256,
+        "networkMode": "awsvpc",
+        "environment": [
+            {
+                "name": "DB_URI",
+                "value": "production"
+            }
+        ]
+    }
+]
+DEFINITION
 }
 
 resource "aws_ecs_service" "main" {
   name            = "ECSSERVICE-${var.name}"
   cluster         = "${aws_ecs_cluster.ecs_cluster.id}"
   task_definition = "${aws_ecs_task_definition.task_def.arn}"
-  desired_count   = "1"
+  desired_count   = "2"
   launch_type     = "FARGATE"
 
   count = length(module.Private1.subnet_ids)

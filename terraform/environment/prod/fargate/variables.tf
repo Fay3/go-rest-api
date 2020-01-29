@@ -46,3 +46,7 @@ variable "service_name" {
   description = "(Required) The name of the project that the resource belongs to - used for tagging."
 }
 
+
+variable "s3_log_bucket_name" {
+  description = "(Required) The name of the s3 log bucket"
+}

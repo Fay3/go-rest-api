@@ -33,3 +33,42 @@ resource "aws_internet_gateway" "igw" {
     create_before_destroy = true
   }
 }
+
+
+resource "aws_flow_log" "vpc_flow_log" {
+  log_destination      = "${aws_s3_bucket.flow_log_bucket.arn}"
+  log_destination_type = "s3"
+  traffic_type         = "ALL"
+  vpc_id               = "${aws_vpc.vpc.id}"
+}
+
+resource "aws_s3_bucket" "flow_log_bucket" {
+  bucket = "${var.name}-vpc-flow-logs"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  logging {
+    target_bucket = "${var.s3_log_bucket_name}"
+    target_prefix = "${var.name}-vpc-flow-logs/"
+  }
+
+  tags = "${merge(
+    map(
+      "Name", "${var.name}--vpc-flow-logs",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}"
+    ),
+    local.default_tags
+  )}"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}

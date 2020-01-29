@@ -6,8 +6,8 @@ resource "aws_alb" "lb" {
   security_groups = ["${aws_security_group.sg_alb.id}"]
 
   access_logs {
-    bucket  = "go-rest-api-s3-log"
-    prefix  = "go-rest-api-app-lb"
+    bucket  = "${var.name}-alb-logs"
+    prefix  = "alb-log"
     enabled = true
   }
 }
@@ -31,4 +31,59 @@ resource "aws_alb_listener" "alb_ln" {
     target_group_arn = "${aws_alb_target_group.alb_tg.id}"
     type             = "forward"
   }
+}
+
+resource "aws_s3_bucket" "alb_log_bucket" {
+  bucket = "${var.name}-alb-logs"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  logging {
+    target_bucket = "${var.s3_log_bucket_name}"
+    target_prefix = "${var.name}-alb-logs/"
+  }
+
+  tags = "${merge(
+    map(
+      "Name", "${var.name}-alb-logs",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}"
+    ),
+    local.default_tags
+  )}"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
+  bucket = "${aws_s3_bucket.alb_log_bucket.id}"
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+       {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.aws_account_id}:root"
+            },
+            "Action": [
+                "s3:PutBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${var.name}-alb-logs/alb-log/AWSLogs/*"
+            ]
+        }
+    ]
+}
+POLICY
 }
