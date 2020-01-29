@@ -9,7 +9,7 @@ executors:
       - image: golang:1.13.6-alpine3.10
 
 commands:
-    assume-aws-role:
+  assume-aws-role:
     parameters:
       aws_access_key_id:
         description: AWS Access Key Id
@@ -41,7 +41,7 @@ commands:
   push-setup:
     description: "Setup a machine to do Docker pushes"
     steps:
-      - run: apk add --no-cache build-base docker py-pip ca-certificates
+      - run: apk add --no-cache bash build-base docker py-pip ca-certificates
       - run: pip install awscli
       - setup_remote_docker:
           version: 18.06.0-ce
@@ -96,8 +96,8 @@ jobs:
     docker:
       - image: alpine:3.9
     steps:
-      - assume-aws-role
       - push-setup
+      - assume-aws-role
       - run: |
           make tag_docker
           make push
