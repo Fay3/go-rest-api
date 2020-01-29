@@ -43,12 +43,9 @@ resource "aws_flow_log" "vpc_flow_log" {
 }
 
 resource "aws_s3_bucket" "flow_log_bucket" {
-  bucket = "${var.name}-vpc-flow-logs"
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
+  bucket        = "${var.name}-vpc-flow-logs"
+  acl           = "private"
+  force_destroy = "true"
 
   logging {
     target_bucket = "${var.s3_log_bucket_name}"

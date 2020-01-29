@@ -54,3 +54,11 @@ variable "s3_log_bucket_name" {
 variable "DB_URI" {
   description = "(Required) The mongodb uri connection string"
 }
+
+variable "mongodbatlas_public_key" {
+  description = "(Required) The Public Key Used For Mongo Atlas API"
+}
+
+variable "mongodbatlas_private_key" {
+  description = "(Required) The Public Key Used For Mongo Atlas API"
+}

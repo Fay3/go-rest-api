@@ -54,12 +54,9 @@ resource "aws_alb_listener" "alb_ln" {
 }
 
 resource "aws_s3_bucket" "alb_log_bucket" {
-  bucket = "${var.name}-alb-logs"
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
+  bucket        = "${var.name}-alb-logs"
+  acl           = "private"
+  force_destroy = "true"
 
   logging {
     target_bucket = "${var.s3_log_bucket_name}"

@@ -1,5 +1,6 @@
 resource "aws_ecs_cluster" "ecs_cluster" {
-  name = "ECSCLUSTER-${var.name}"
+  name               = "ECSCLUSTER-${var.name}"
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 }
 
 resource "aws_ecs_task_definition" "task_def" {
@@ -51,7 +52,10 @@ resource "aws_ecs_service" "main" {
   cluster         = "${aws_ecs_cluster.ecs_cluster.id}"
   task_definition = "${aws_ecs_task_definition.task_def.arn}"
   desired_count   = "2"
-  launch_type     = "FARGATE"
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 50
+  }
 
   count = length(module.Private1.subnet_ids)
 
@@ -81,7 +85,7 @@ resource "aws_iam_role" "ecs_task_role" {
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${var.aws_account_id}:root"
+        "Service": "ecs-tasks.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }

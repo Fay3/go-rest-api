@@ -1,5 +1,5 @@
 module "Public1" {
-  source = "../../../modules/network/"
+  source = "../../modules/network/"
 
   public  = 1
   private = 0
@@ -16,7 +16,7 @@ module "Public1" {
 }
 
 module "Public2" {
-  source = "../../../modules/network/"
+  source = "../../modules/network/"
 
   public  = 1
   private = 0
@@ -33,7 +33,7 @@ module "Public2" {
 }
 
 module "Private1" {
-  source = "../../../modules/network/"
+  source = "../../modules/network/"
 
   public  = 0
   private = 1
@@ -50,7 +50,7 @@ module "Private1" {
 }
 
 module "Private2" {
-  source = "../../../modules/network/"
+  source = "../../modules/network/"
 
   public  = 0
   private = 1
