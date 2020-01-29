@@ -57,7 +57,7 @@ resource "aws_s3_bucket" "flow_log_bucket" {
 
   tags = "${merge(
     map(
-      "Name", "${var.name}--vpc-flow-logs",
+      "Name", "${var.name}-vpc-flow-logs",
       "Environment", "${var.environment}",
       "ServiceName", "${var.service_name}"
     ),

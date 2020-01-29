@@ -1,4 +1,4 @@
-resource "aws_alb" "lb" {
+resource "aws_alb" "app_lb" {
 
   name            = "ALB-${var.name}"
   count           = length(module.Public1.subnet_ids)
@@ -10,6 +10,11 @@ resource "aws_alb" "lb" {
     prefix  = "alb-log"
     enabled = true
   }
+
+  depends_on = [
+    "aws_s3_bucket.alb_log_bucket",
+  ]
+
 }
 
 resource "aws_alb_target_group" "alb_tg" {
@@ -21,7 +26,7 @@ resource "aws_alb_target_group" "alb_tg" {
 }
 
 resource "aws_alb_listener" "alb_ln" {
-  load_balancer_arn = "${aws_alb.lb.0.id}"
+  load_balancer_arn = "${aws_alb.app_lb.0.id}"
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
@@ -77,10 +82,10 @@ resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
                 "AWS": "arn:aws:iam::${var.aws_account_id}:root"
             },
             "Action": [
-                "s3:PutBucket"
+                "s3:PutObject"
             ],
             "Resource": [
-                "arn:aws:s3:::${var.name}-alb-logs/alb-log/AWSLogs/*"
+                "arn:aws:s3:::${var.name}-alb-logs/*"
             ]
         }
     ]
