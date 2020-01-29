@@ -2,7 +2,7 @@ LOGIN_CMD := "docker login $(REGISTRY)"
 REGISTRY ?= fay3
 ECR_REGISTRY_URL ?= fay3
 CIRCLE_SHA1 ?= 00000
-NAME ?= go-api-app-demo
+NAME ?= go-rest-api-demo
 
 build: build-app
 
