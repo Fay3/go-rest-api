@@ -41,7 +41,7 @@ commands:
   push-setup:
     description: "Setup a machine to do Docker pushes"
     steps:
-      - run: apk add --no-cache bash build-base docker py-pip ca-certificates
+      - run: apk add --no-cache bash build-base docker py-pip jq ca-certificates
       - run: pip install awscli
       - setup_remote_docker:
           version: 18.06.0-ce
@@ -52,6 +52,7 @@ commands:
           mkdir ~/.docker
           echo '{"experimental": "enabled"}' > ~/.docker/config.json
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+          aws ecr get-login --no-include-email --region eu-west-1 | /bin/bash
 
   test-setup:
     description: "Setup a machine to do container structure tests"
