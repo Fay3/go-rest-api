@@ -19,7 +19,7 @@ resource "aws_alb" "app_lb" {
 
 resource "aws_alb_target_group" "alb_tg" {
   name        = "ALBTARGETGROUP-${var.name}"
-  port        = 3000
+  port        = "${var.app_port}"
   protocol    = "HTTP"
   vpc_id      = "${aws_vpc.vpc.id}"
   target_type = "ip"
@@ -81,7 +81,6 @@ resource "aws_s3_bucket" "alb_log_bucket" {
   }
 }
 
-
 data "aws_elb_service_account" "main" {}
 
 resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
@@ -103,7 +102,7 @@ resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
             ],
             "Resource": [
                 "arn:aws:s3:::${var.name}-alb-logs/*"
-            ]
+                ]
         }
     ]
 }

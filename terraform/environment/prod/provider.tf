@@ -10,7 +10,7 @@ provider "mongodbatlas" {
 terraform {
   backend "s3" {
     bucket = "go-rest-api-terraform-state"
-    key    = "go-rest-api/prod/fargate/terraform.tfstate"
+    key    = "go-rest-api/prod/terraform.tfstate"
     region = "eu-west-1"
   }
 }

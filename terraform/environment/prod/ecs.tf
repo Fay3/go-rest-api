@@ -7,8 +7,8 @@ resource "aws_ecs_task_definition" "task_def" {
   family                   = "${var.name}-${var.environment}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = "${var.ecs_cpu}"
+  memory                   = "${var.ecs_memory}"
   execution_role_arn       = "${aws_iam_role.ecs_task_role.arn}"
 
   container_definitions = <<DEFINITION
@@ -21,12 +21,12 @@ resource "aws_ecs_task_definition" "task_def" {
         ],
         "portMappings": [
             {
-                "containerPort": 3000,
-                "hostPort": 3000
+                "containerPort": ${var.app_port},
+                "hostPort": ${var.app_port}
             }
         ],
-        "memory": 512,
-        "cpu": 256,
+        "memory": ${var.ecs_memory},
+        "cpu": ${var.ecs_cpu},
         "networkMode": "awsvpc",
         "environment": [
             {
@@ -51,7 +51,7 @@ resource "aws_ecs_service" "main" {
   name            = "ECSSERVICE-${var.name}"
   cluster         = "${aws_ecs_cluster.ecs_cluster.id}"
   task_definition = "${aws_ecs_task_definition.task_def.arn}"
-  desired_count   = "2"
+  desired_count   = "${var.desired_count}"
   capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
     weight            = 50
@@ -67,7 +67,7 @@ resource "aws_ecs_service" "main" {
   load_balancer {
     target_group_arn = "${aws_alb_target_group.alb_tg.id}"
     container_name   = "${var.name}"
-    container_port   = "3000"
+    container_port   = "${var.app_port}"
   }
 
   depends_on = [
