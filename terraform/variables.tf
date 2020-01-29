@@ -1,3 +1,7 @@
+variable "aws_account_id" {
+  description = "(Required) The AWS ACCOUNT ID"
+}
+
 variable "s3_bucket_name" {
   description = "(Required) The name of the s3 bucket"
 }
