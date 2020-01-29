@@ -7,8 +7,7 @@ variable "map_public_ip_on_launch" {
 
 locals {
   default_tags = {
-    ServiceOwner = "thomas.gardham-pallister@news.co.uk"
-    BuiltBy      = "terraform"
+    BuiltBy = "terraform"
   }
 }
 

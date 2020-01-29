@@ -1,3 +1,11 @@
+variable "aws_account_id" {
+  description = "(Required) The AWS ACCOUNT ID"
+}
+
+variable "route53_hosted_zone" {
+  description = "(Required) The Route53 Hosted Zone"
+}
+
 variable "cidr_block" {
   description = "(Required) The CIDR block for the VPC"
 }

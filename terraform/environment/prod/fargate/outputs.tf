@@ -7,3 +7,19 @@ output "vpc_id" {
 output "vpc_igw_id" {
   value = "${aws_internet_gateway.igw.id}"
 }
+
+output "pub1_subnet_ids" {
+  value = "${module.Public1.subnet_ids}"
+}
+
+output "pub2_subnet_ids" {
+  value = "${module.Public2.subnet_ids}"
+}
+
+output "priv1_subnet_ids" {
+  value = "${module.Private1.subnet_ids}"
+}
+
+output "priv2_subnet_ids" {
+  value = "${module.Private2.subnet_ids}"
+}

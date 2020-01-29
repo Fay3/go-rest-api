@@ -1,0 +1,21 @@
+[
+    {
+        "name": "go-rest-api-prod",
+        "image": "fay3/go-rest-api-demo:latest",
+        "portMappings": [
+            {
+                "containerPort": 300,
+                "hostPort": 300
+            }
+        ],
+        "memory": 512,
+        "cpu": 256,
+        "networkMode": "awsvpc",
+        "environment": [
+            {
+                "name": "DB_URI",
+                "value": "production"
+            }
+        ]
+    }
+]
