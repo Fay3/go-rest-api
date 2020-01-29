@@ -24,7 +24,7 @@ resource "aws_ecs_service" "main" {
 
   network_configuration {
     security_groups = ["${aws_security_group.sg_ecs_tasks.id}"]
-    subnets         = ["${module.Private1.subnet_ids.0[count.index]}"]
+    subnets         = ["${module.Private1.subnet_ids.0[count.index]}", "${module.Private2.subnet_ids.0[count.index]}"]
   }
 
   load_balancer {

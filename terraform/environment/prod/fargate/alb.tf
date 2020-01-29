@@ -2,7 +2,7 @@ resource "aws_alb" "lb" {
 
   name            = "ALB-${var.name}"
   count           = length(module.Public1.subnet_ids)
-  subnets         = ["${module.Public1.subnet_ids.0[count.index]},${module.Public2.subnet_ids.0[count.index]}"]
+  subnets         = ["${module.Public1.subnet_ids.0[count.index]}", "${module.Public2.subnet_ids.0[count.index]}"]
   security_groups = ["${aws_security_group.sg_alb.id}"]
 
   access_logs {
