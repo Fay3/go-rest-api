@@ -1,6 +1,20 @@
+locals {
+  mongo_host = replace("${mongodbatlas_cluster.mongo-cluster.srv_address}", "mongodb+srv://", "")
+}
+
 resource "aws_ecs_cluster" "ecs_cluster" {
   name               = "ECSCLUSTER-${var.name}"
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+
+  tags = "${merge(
+    map(
+      "Name", "ECSCLUSTER-${var.name}",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}",
+    ),
+    local.default_tags
+  )}"
+
 }
 
 resource "aws_ecs_task_definition" "task_def" {
@@ -15,7 +29,7 @@ resource "aws_ecs_task_definition" "task_def" {
 [
     {
         "name": "go-rest-api-prod",
-        "image": "${var.aws_account_id}.dkr.ecr.eu-west-1.amazonaws.com/go-rest-api-demo:latest",
+        "image": "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.ecr_repo}:${var.docker_tag}",
         "command": [
           "/bin/api-app"
         ],
@@ -31,7 +45,7 @@ resource "aws_ecs_task_definition" "task_def" {
         "environment": [
             {
                 "name": "DB_URI",
-                "value": "${var.DB_URI}"
+                "value": "mongodb+srv://${var.mongo_username}:${var.mongo_password}@${local.mongo_host}/test?w=majority"
             }
         ],
         "logConfiguration": {
@@ -45,6 +59,15 @@ resource "aws_ecs_task_definition" "task_def" {
     }
 ]
 DEFINITION
+
+  tags = "${merge(
+    map(
+      "Name", "ECSTASKDEF-${var.name}",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}",
+    ),
+    local.default_tags
+  )}"
 }
 
 resource "aws_ecs_service" "main" {
@@ -68,6 +91,10 @@ resource "aws_ecs_service" "main" {
     target_group_arn = "${aws_alb_target_group.alb_tg.id}"
     container_name   = "${var.name}"
     container_port   = "${var.app_port}"
+  }
+
+  lifecycle {
+    ignore_changes = ["desired_count"]
   }
 
   depends_on = [

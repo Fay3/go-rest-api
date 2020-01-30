@@ -4,6 +4,20 @@ locals {
   }
 }
 
+variable "aws_region" {
+  description = "(Required) The aws region"
+  default     = "eu-west-1"
+}
+
+variable "ecr_repo" {
+  description = "(Required) The ECR repo to be used"
+  default     = "go-rest-api-demo"
+}
+variable "docker_tag" {
+  description = "(Required) The tag to be deployed"
+  default     = "latest"
+}
+
 variable "enable_dns_support" {
   description = "(Optional) A boolean flag to enable/disable DNS support in the VPC. Defaults to true."
   default     = true

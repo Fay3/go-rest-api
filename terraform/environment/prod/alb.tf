@@ -11,6 +11,15 @@ resource "aws_alb" "app_lb" {
     enabled = true
   }
 
+  tags = "${merge(
+    map(
+      "Name", "ALB-${var.name}",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}",
+    ),
+    local.default_tags
+  )}"
+
   depends_on = [
     "aws_s3_bucket_policy.alb_log_bucket_policy",
   ]
@@ -23,6 +32,15 @@ resource "aws_alb_target_group" "alb_tg" {
   protocol    = "HTTP"
   vpc_id      = "${aws_vpc.vpc.id}"
   target_type = "ip"
+
+  tags = "${merge(
+    map(
+      "Name", "ALB-TG-${var.name}",
+      "Environment", "${var.environment}",
+      "ServiceName", "${var.service_name}",
+    ),
+    local.default_tags
+  )}"
 }
 
 resource "aws_lb_listener" "http" {
@@ -45,7 +63,7 @@ resource "aws_alb_listener" "alb_ln" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "arn:aws:acm:eu-west-1:${var.aws_account_id}:certificate/97112dba-4948-4ff9-9ba2-c3b9e05476dc"
+  certificate_arn   = "arn:aws:acm:${var.aws_region}:${var.aws_account_id}:certificate/${var.acm_certificate_id}"
 
   default_action {
     target_group_arn = "${aws_alb_target_group.alb_tg.id}"

@@ -29,3 +29,11 @@ output "priv1_ngw_ip" {
 output "priv2_ngw_ip" {
   value = "${aws_eip.natgw_eip_pub2.public_ip}"
 }
+
+output "mongo_cluster_id" {
+  value = "${mongodbatlas_cluster.mongo-cluster.cluster_id}"
+}
+
+output "mongo_srv_address" {
+  value = "${mongodbatlas_cluster.mongo-cluster.srv_address}"
+}
