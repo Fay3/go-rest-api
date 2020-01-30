@@ -12,5 +12,6 @@ terraform {
     bucket = "go-rest-api-terraform-state"
     key    = "go-rest-api/prod/terraform.tfstate"
     region = "eu-west-1"
-  }
+  },
+  required_version = "0.12.13"
 }
