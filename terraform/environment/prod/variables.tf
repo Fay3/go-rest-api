@@ -6,9 +6,6 @@ variable "aws_account_id" {
 variable "route53_hosted_zone" {
   description = "(Required) The Route53 Hosted Zone"
 }
-variable "DB_URI" {
-  description = "(Required) The mongodb uri connection string"
-}
 
 variable "mongodbatlas_public_key" {
   description = "(Required) The Public Key Used For Mongo Atlas API"

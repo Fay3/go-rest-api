@@ -8,6 +8,31 @@ executors:
     docker:
       - image: golang:1.13.6-alpine3.10
 
+  alpine:
+    docker:
+      - image: alpine:3.9
+
+  terraform:
+    docker:
+      - image: hashicorp/terraform:0.12.13
+
+### Aliases
+
+terraform-defaults: &terraform-defaults
+  name: "Install bash and aws-cli"
+  command: apk update && apk add bash py-pip jq && pip install awscli
+
+terraform-env-vars: &terraform-env-vars
+  name: "Setup custom environment variables"
+  command: |
+    echo "export TF_VAR_aws_account_id=${AWS_ACCOUNT_ID}" >> $BASH_ENV
+    echo "export TF_VAR_route53_hosted_zone=${ROUTE53_HOSTED_ZONE}" >> $BASH_ENV
+    echo "export TF_VAR_mongodbatlas_private_key=${MONGO_ATLAS_PIR}" >> $BASH_ENV
+    echo "export TF_VAR_mongodbatlas_public_key=${MONGO_ATLAS_PUB}" >> $BASH_ENV
+    source $BASH_ENV
+
+### COMMANDS
+
 commands:
   assume-aws-role:
     parameters:
@@ -62,6 +87,32 @@ commands:
           chmod +x container-structure-test-linux-amd64 && \
           mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
 
+  terraform-init:
+    description: "Run Terraform init"
+    steps:
+      - run: |
+          source $BASH_ENV
+          terraform init
+
+  terraform-plan:
+    description: "Run Terraform Plan"
+    parameters:
+      terraform_arg:
+        description: provide terraform arguments
+        type: string
+        default: ""
+    steps:
+      - run: |
+          source $BASH_ENV
+          terraform plan -out=tfplan -input=false << parameters.terraform_arg >>
+
+  terraform-apply:
+    description: "Run Terraform Apply"
+    steps:
+      - run: |
+          source $BASH_ENV
+          terraform apply -lock=false -input=false tfplan
+
 jobs:
   lint:
     executor: lint
@@ -78,8 +129,7 @@ jobs:
           go test ./...
 
   build:
-    docker:
-      - image: alpine:3.9
+    executor: alpine
     steps:
       - checkout
       - setup_remote_docker
@@ -104,6 +154,22 @@ jobs:
           make tag_docker
           make push
 
+  deploy:
+    docker:
+      - image: terraform
+    working_directory: ~/code/terraform/environment/prod
+    steps:
+      - checkout:
+          path: ~/code
+      - run:
+          <<: *terraform-defaults
+      - run:
+          <<: *terraform-env-vars
+      - assume-aws-role
+      - terraform-init
+      - terraform-plan
+      # - terraform-apply
+
 workflows:
   version: 2
   build:
@@ -117,6 +183,12 @@ workflows:
       - push:
           requires:
             - build
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - push
           filters:
             branches:
               only: master
