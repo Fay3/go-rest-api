@@ -148,8 +148,7 @@ jobs:
           paths: ./
 
   push:
-    docker:
-      - image: alpine:3.9
+    executor: alpine
     steps:
       - push-setup
       - assume-aws-role
@@ -160,8 +159,7 @@ jobs:
           make push
 
   deploy:
-    docker:
-      - image: terraform
+    executor: terraform
     working_directory: ~/code/terraform/environment/prod
     steps:
       - checkout:
