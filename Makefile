@@ -12,6 +12,9 @@ build-app:
 build-local:
 	docker-compose up
 
+remove-local:
+	docker-compose down --rmi local
+
 build-docker:
 	docker build -t $(REGISTRY)/$(NAME):${CIRCLE_SHA1} -t $(ECR_REGISTRY_URL)/$(NAME):${CIRCLE_SHA1} .
 
