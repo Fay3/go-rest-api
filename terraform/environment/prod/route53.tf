@@ -1,6 +1,6 @@
 resource "aws_route53_record" "alias_route53_record" {
   zone_id = "${var.route53_hosted_zone}"
-  name    = "go-rest-api.stevenquan.co.uk"
+  name    = "${var.fqdn}"
   type    = "A"
 
   alias {

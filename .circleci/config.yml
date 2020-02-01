@@ -24,11 +24,13 @@ terraform-defaults: &terraform-defaults
 
 terraform-env-vars: &terraform-env-vars
   command: |
-    export TF_VAR_aws_account_id=${AWS_ACCOUNT_ID}
-    export TF_VAR_route53_hosted_zone=${ROUTE53_HOSTED_ZONE}
-    export TF_VAR_mongodbatlas_private_key=${MONGO_ATLAS_PIR}
-    export TF_VAR_mongodbatlas_public_key=${MONGO_ATLAS_PUB}
-    export TF_VAR_docker_tag=${CIRCLE_SHA1}
+    echo "export TF_VAR_aws_account_id=${AWS_ACCOUNT_ID}" >> $BASH_ENV
+    echo "export TF_VAR_route53_hosted_zone=${ROUTE53_HOSTED_ZONE}" >> $BASH_ENV
+    echo "export TF_VAR_mongodbatlas_private_key=${MONGO_ATLAS_PIR}" >> $BASH_ENV
+    echo "export TF_VAR_mongodbatlas_public_key=${MONGO_ATLAS_PUB}" >> $BASH_ENV
+    echo "export TF_VAR_mongo_org_id=${MONGO_ATLAS_ORG_ID}" >> $BASH_ENV
+    echo "export TF_VAR_docker_tag=${CIRCLE_SHA1}" >> $BASH_ENV
+    echo "export TF_VAR_mongo_password=${MONGO_DB_PASS}" >> $BASH_ENV
 
 ### COMMANDS
 
@@ -89,8 +91,6 @@ commands:
   terraform-init:
     description: "Run Terraform init"
     steps:
-      - run:
-          <<: *terraform-env-vars
       - run: |
           source $BASH_ENV
           terraform init
@@ -103,8 +103,6 @@ commands:
         type: string
         default: ""
     steps:
-      - run:
-          <<: *terraform-env-vars
       - run: |
           source $BASH_ENV
           terraform plan -out=tfplan -input=false << parameters.terraform_arg >>
@@ -112,8 +110,6 @@ commands:
   terraform-apply:
     description: "Run Terraform Apply"
     steps:
-      - run:
-          <<: *terraform-env-vars
       - run: |
           source $BASH_ENV
           terraform apply -lock=false -input=false tfplan
@@ -135,6 +131,8 @@ jobs:
 
   build:
     executor: alpine
+    environment:
+      NAME: go-rest-api-demo
     steps:
       - checkout
       - setup_remote_docker
@@ -145,7 +143,9 @@ jobs:
           make save
       - persist_to_workspace:
           root: ./
-          paths: ./
+          paths:
+            - go-rest-api-demo_latest.tar
+            - go-rest-api-demo_ECR_latest.tar
 
   push:
     executor: alpine
@@ -158,7 +158,7 @@ jobs:
           make tag_docker
           make push
 
-  deploy:
+  plan:
     executor: terraform
     working_directory: ~/code/terraform/environment/prod
     steps:
@@ -166,10 +166,31 @@ jobs:
           path: ~/code
       - run:
           <<: *terraform-defaults
+      - run:
+          <<: *terraform-env-vars
       - assume-aws-role
       - terraform-init
       - terraform-plan
-      # - terraform-apply
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - tfplan
+
+  deploy:
+    executor: terraform
+    working_directory: ~/code/terraform/environment/prod
+    steps:
+      - checkout:
+          path: ~/code
+      - attach_workspace:
+          at: ./
+      - run:
+          <<: *terraform-defaults
+      - run:
+          <<: *terraform-env-vars
+      - assume-aws-role
+      - terraform-init
+      - terraform-apply
 
 workflows:
   version: 2
@@ -187,9 +208,22 @@ workflows:
           filters:
             branches:
               only: master
-      - deploy:
+      - plan:
           requires:
             - push
+          filters:
+            branches:
+              only: master
+      - approve_plan:
+          type: approval
+          requires:
+            - plan
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - approve_plan
           filters:
             branches:
               only: master

@@ -14,7 +14,7 @@ variable "mongodbatlas_private_key" {
   description = "(Required) The Public Key Used For Mongo Atlas API"
 }
 
-#VPC
+# VPC
 variable "cidr_block" {
   description = "(Required) The CIDR block for the VPC"
 }
@@ -50,6 +50,11 @@ variable "acm_certificate_id" {
   description = "(Required) The ACM SSL certificate ID"
 }
 
+# ROUTE53
+variable "fqdn" {
+  description = "(Required) The fully qualified domain name to be used for dns record"
+}
+
 # ECS
 variable "app_port" {
   description = "(Required) The port for the docker app"
@@ -67,7 +72,7 @@ variable "desired_count" {
   description = "(Required) The desired count of containers"
 }
 
-#MONGODB
+# MONGODB
 variable "mongo_org_id" {
   description = "(Required) The mongodb atlas org ID"
 }

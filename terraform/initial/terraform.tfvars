@@ -1,5 +1,0 @@
-environment        = "prod"
-name               = "go-rest-api"
-service_name       = "go-rest-api"
-s3_bucket_name     = "go-rest-api-terraform-state"
-s3_log_bucket_name = "go-rest-api-s3-log"

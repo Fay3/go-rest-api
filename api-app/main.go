@@ -78,12 +78,6 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	diff := date.Sub(then)
 	daysInt := int(diff.Hours() / 24)
 
-	// date := time.Now()
-	// format := "2006-01-02"
-	// then, _ := time.Parse(format, user.DOB)
-	// diff := then.Sub(date)
-	// daysInt := int(diff.Hours() / 24)
-
 	if daysInt <= 0 {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		response.Write([]byte(`{ "message": " ` + user.DOB + ` must be a date before todays date"}`))
@@ -125,13 +119,6 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// date := time.Now()
-	// format := "2006-01-02"
-	// then, _ := time.Parse(format, user.DOB)
-	// diff := date.Sub(then)
-	// daysInt := int(diff.Hours() / 24)
-	// daysStr := strconv.Itoa(int(diff.Hours() / 24))
-
 	date := time.Now()
 	format := "2006-01-02"
 	curYear := date.Year()
@@ -165,13 +152,32 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	return
 }
 
+func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
+	response.Header().Add("content-type", "application/json")
+	params := mux.Vars(request)
+	username, _ := (params["username"])
+	collection := client.Database("birthdayDB").Collection("users")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	filter := bson.M{"username": username}
+
+	deleteResult, err := collection.DeleteOne(ctx, filter)
+
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{ "message": "` + err.Error() + `"}`))
+		return
+	}
+
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(deleteResult)
+}
+
 func main() {
 	fmt.Println("starting the application...")
 	dbhost := os.Getenv("DB_URI")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, _ = mongo.Connect(ctx, options.Client().ApplyURI(dbhost))
 	router := mux.NewRouter()
-	router.HandleFunc("/hello", CreateUserEndpoint).Methods("POST")
 	router.HandleFunc("/hello/{username}", GetUserEndpoint).Methods("GET")
 	router.HandleFunc("/hello/{username}", UpdateUserEndpoint).Methods("PUT")
 	log.Fatal(http.ListenAndServe(":3000", router))

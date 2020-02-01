@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "bucket" {
-  bucket = "${var.s3_bucket_name}"
+  bucket = "${var.name}-terraform-state"
   acl    = "private"
 
   versioning {
@@ -7,13 +7,13 @@ resource "aws_s3_bucket" "bucket" {
   }
 
   logging {
-    target_bucket = "${var.s3_log_bucket_name}"
-    target_prefix = "${var.s3_bucket_name}/"
+    target_bucket = "${var.name}-s3-log"
+    target_prefix = "${var.name}-terraform-state/"
   }
 
   tags = "${merge(
     map(
-      "Name", "${var.s3_bucket_name}",
+      "Name", "${var.name}-terraform-state",
       "Environment", "${var.environment}",
       "ServiceName", "${var.service_name}"
     ),
@@ -30,12 +30,12 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 resource "aws_s3_bucket" "log-bucket" {
-  bucket = "${var.s3_log_bucket_name}"
+  bucket = "${var.name}-s3-log"
   acl    = "log-delivery-write"
 
   tags = "${merge(
     map(
-      "Name", "${var.s3_log_bucket_name}",
+      "Name", "${var.name}-s3-log",
       "Environment", "${var.environment}",
       "ServiceName", "${var.service_name}"
     ),
