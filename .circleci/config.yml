@@ -123,11 +123,11 @@ jobs:
           hadolint Dockerfile
 
   test:
-    executor: go
+    machine:
+      docker_layer_caching: false
     steps:
       - checkout
-      - run: |
-          go test ./...
+      - run: make test-local
 
   build:
     executor: alpine
@@ -197,11 +197,11 @@ workflows:
   build:
     jobs:
       - lint
-      #     - test
+      - test
       - build:
           requires:
             - lint
-      #           - test
+            - test
       - push:
           requires:
             - build

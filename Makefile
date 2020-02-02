@@ -15,6 +15,12 @@ build-local:
 remove-local:
 	docker-compose down --rmi local
 
+test-local:
+	docker-compose -f docker-compose-test.yaml up --exit-code-from cypress
+
+remove-test-local:
+	docker-compose -f docker-compose-test.yaml down --rmi local
+
 build-docker:
 	docker build -t $(REGISTRY)/$(NAME):${CIRCLE_SHA1} -t $(ECR_REGISTRY_URL)/$(NAME):${CIRCLE_SHA1} .
 

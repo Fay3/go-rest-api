@@ -11,6 +11,7 @@ go-rest-api is a basic golang restful api that connects to a mongo database expo
 * Mongodb
 * Docker
 * Terraform
+* Cypress
 
 ## Prerequisites
 The following tools will need to be available in order to build and run locally:
@@ -70,6 +71,10 @@ To Run the application locally in the root of the git repo:
 
 #### Test
 To Test the application locally in the root of the git repo:
+   ```bash
+     make test-local && make remove-test-local
+   ```
+this will build the docker-compose-test.yaml file and run the e2e cypress tests and exit based on cypress container. the second command will remove all docker-compose containers that where built from the docker-compose-test.yaml file
 
 container-structure-test will be run as part of the pipeline this will test to see if the APP binary is available in the $PATH
 
@@ -83,9 +88,9 @@ this will build the go application and place the binary in the directory `bin/`
 ## Continuous Integration / Delivery
 for CI/CD we will be using circle ci the config file for circle can be found in `.circleci/config.yml`
 
-once a user push a commit to github this will automatically fire off the pipeline jobs which will include:
+once a user pushes a commit to github this will automatically fire off the pipeline jobs which will include:
 * lint - will lint the docker image
-* test - run unit test against code
+* test - runs unit test against code
 * build: (will only run if lint and test passes)
 - build the dockerfile
 - run container structured test against build
@@ -179,7 +184,7 @@ AWS Infrastructure
 * 1x ALB (ACM Certifcate, Route53 Entry)
 * 1x Target Group
 * 1x ECS Service 
-* 4x ECS FARGATE Task
+* 4x ECS FARGATE Tasks
 
 Mongo Atlas
 * VPC
@@ -192,10 +197,11 @@ Mongo Atlas
 * After reading the rfc7231#section-4.3.4 in considering POST is not exposed if the username does not exist the user will be created
 
 ### CND
-Dependant on how many expect hits consideration of implementation of CDN such as aws cloudfront for GET request to improve response times 
+Dependant on how many expected hits, consideration of implementation of CDN such as aws cloudfront would be made for GET request to improve response times 
 
 ### DR Environment
 When hosting an application in production a DR environment should be considered
+steps would be:
 * cold standby environment in another AWS Region and switch using DNS
 * upgrade mongo atlas cluster to regional
 
@@ -203,31 +209,36 @@ When hosting an application in production a DR environment should be considered
 Mongodb Atlas was decided due to the simplicity of hosting a Mongodb Cluster and ease of not having to manage the cluster
 
 ### Tech Stack
-* As an opportunity to take this as a learning exercise I have decided to go some tech that I am new to to learn more:
+* As an opportunity to take this as a learning exercise, I decided to go with some tech that I am new to:
 * GO
 * Fargate
 * Mongo Atalas
 
-however dependant on existing tech stack available which would normally be a k8s cluster migrating to k8s should be a simple task as we are using docker containers and deploy using `helm` charts:
-- Kubernetes
-- Helm
+however dependant on the existing tech stack available which would normally be a k8s cluster migrating to k8s should be a simple task as the app is built using docker containers and can easily be deployed using `helm` charts:
+* Kubernetes - EKS
+* Helm
+* Prometheus / Grafana
 
-but to go truly serverless would be:
-- AWS API Gateway (auth with token)
-- AWS Lambda
-- AWS Dynamodb
+Another consideration was go truly serverless with:
+* AWS API Gateway (auth with token)
+* AWS Lambda
+* AWS Dynamodb
 
 ### SRE
+The following was SRE considerations were taken while implementing the IaC: 
 * S3 Logs with a dedicated bucket S3 Log bucket
 * ALB Access logs to S3 bucket 
 * VPC Flow Logs to S3 bucket
 * Cloudwatch log group for ECS Fargate Task
 
 ## Limitations
-Authentication on the API END Points was not implemented due to time constraints but would be recommended
+* Authentication - Ideally I would have liked to implement authentication on the API END Points but due to time constraints was not implemented this has been put as an item on the Roadmap.
+
+* Testing - the ideal way of testing the application would have been to use the GO testing package and mocking the mongodb database as docker-compose takes a while to build the application.
 
 ## Roadmap
 * Authentication via API Keys for end points
 * Build a front end for End Point
+* Unit testing using GO testing package and Mocking End Points
 
 
