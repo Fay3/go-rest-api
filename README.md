@@ -103,6 +103,12 @@ approve_plan: <Will Only Run On Master Branch>
 - A deploy gate that requires manually approval to proceed to next job `deploy`
 deploy: Assumes AWS Role `CIASSUMEROLE-` loads tfplan file from previous job `plan` and runs terraform apply which will either provision below Architecture (if on first run) or deploy new docker tag via task to AWS fargate.
 
+![](diagram/pipeline.jpg)
+
+![](diagram/deploy_gate.jpg)
+
+![](diagram/deploy.jpg)
+
 ### Prerequisites for Circle pipeline
 #### IAM USER, ROLE, S3 BUCKETS and ECR REPO
 1. Prerequisites Terraform State File
@@ -224,6 +230,14 @@ Another consideration was go truly serverless with:
 * AWS Lambda
 * AWS Dynamodb
 
+### Versioning
+For the application versioning I have gone with the git commit SHA to tag the application docker image, consideration of using semver dependent of team size and delivery stream
+
+### Branching Strategy
+As this is a small project I have only been committing to master however consideration of branching strategy would be dependent on team size and delivery steam
+* GITFLOW
+* GITHUBFLOW
+
 ### SRE
 The following was SRE considerations were taken while implementing the IaC: 
 * S3 Logs with a dedicated bucket S3 Log bucket
@@ -240,5 +254,6 @@ The following was SRE considerations were taken while implementing the IaC:
 * Authentication via API Keys for end points
 * Build a front end for End Point
 * Unit testing using GO testing package and Mocking End Points
+
 
 
