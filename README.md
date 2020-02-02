@@ -1,8 +1,10 @@
 # go-rest-api
 go-rest-api is a basic golang restful api that connects to a mongo database exposing the following endpoints
 
-PUT /hello/<username>
-Get /hello/<username>
+   ```
+    PUT /hello/<username>
+    Get /hello/<username>
+   ``` 
 
 ## Tech Stack
 * Golang 
@@ -69,6 +71,8 @@ To Run the application locally in the root of the git repo:
 #### Test
 To Test the application locally in the root of the git repo:
 
+container-structure-test will be run as part of the pipeline this will test to see if the APP binary is available in the $PATH
+
 #### Build
 To Build the application locally in the root of the git repo
    ```bash
@@ -80,20 +84,18 @@ this will build the go application and place the binary in the directory `bin/`
 for CI/CD we will be using circle ci the config file for circle can be found in `.circleci/config.yml`
 
 once a user push a commit to github this will automatically fire off the pipeline jobs which will include:
-* lint: 
-** will lint the docker image
-* test: 
-** run unit test against code
+* lint - will lint the docker image
+* test - run unit test against code
 * build: (will only run if lint and test passes)
-** build the dockerfile
-** run container structured test against build
-** save docker build as tar files for dockerhub and ECR registry with git commit shar as tag
+- build the dockerfile
+- run container structured test against build
+- save docker build as tar files for dockerhub and ECR registry with git commit shar as tag
 * push: <Will Only Run On Master Branch> 
-** Assumes AWS Role `CIASSUMEROLE-` and loads docker build .tar files from previous build job and pushes to dockerhub and ECR registry
+- Assumes AWS Role `CIASSUMEROLE-` and loads docker build .tar files from previous build job and pushes to dockerhub and ECR registry
 * plan: <Will Only Run On Master Branch>
-** Assumes AWS Role `CIASSUMEROLE-` with working directory of `terraform/environment/prod` This will run a terraform plan and output the plan to file `tfplan`
+- Assumes AWS Role `CIASSUMEROLE-` with working directory of `terraform/environment/prod` This will run a terraform plan and output the plan to file `tfplan`
 approve_plan: <Will Only Run On Master Branch>
-** A deploy gate that requires manually approval to proceed to next job `deploy`
+- A deploy gate that requires manually approval to proceed to next job `deploy`
 deploy: Assumes AWS Role `CIASSUMEROLE-` loads tfplan file from previous job `plan` and runs terraform apply which will either provision below Architecture (if on first run) or deploy new docker tag via task to AWS fargate.
 
 ### Prerequisites for Circle pipeline
@@ -126,13 +128,14 @@ you will need to create the following environment variables in the circle ci pro
 * AWS_ACCOUNT_ID - AWS ACCOUNT ID
 * DOCKER_PASSWORD - created in Project Prerequisites
 * DOCKER_USERNAME - created in Project Prerequisites
-* ECR_REGISTRY_URL
-* ECR_REPO
+* ECR_REGISTRY_URL - created in Project Prerequisites
+* ECR_REPO - created in Project Prerequisites
 * MONGO_ATLAS_ORG_ID - created in Project Prerequisites
 * MONGO_ATLAS_PIR - created in Project Prerequisites
 * MONGO_ATLAS_PUB - created in Project Prerequisites
 * MONGO_DB_PASS - database password to be used for production APP
 * ROUTE53_HOSTED_ZONE - created in Project Prerequisites
+* ACM_CERTIFICATE_ID - created in Project Prerequisites
 
 CircleCI Should now be able to build the project with no errors
 
@@ -148,6 +151,7 @@ Ideally we should be using the pipeline to do our deployments but should you nee
         export TF_VAR_mongodbatlas_public_key=<replace_with_your_mongodb_atlas_public_key>
         export TF_VAR_mongo_password=<replace_with_your_mongodb_password_to_be_used>
         export TF_VAR_mongo_org_id=<replace_with_your_mongodb_atlas_org_id>
+        export TF_VAR_acm_certificate_id=<replace_with_your_acm_certificate_id>
    ```
 
 2. Terraform init and Terraform apply `cd` `terraform/environment/prod/`
@@ -198,6 +202,21 @@ When hosting an application in production a DR environment should be considered
 ### Mongo Atlas
 Mongodb Atlas was decided due to the simplicity of hosting a Mongodb Cluster and ease of not having to manage the cluster
 
+### Tech Stack
+* As an opportunity to take this as a learning exercise I have decided to go some tech that I am new to to learn more:
+* GO
+* Fargate
+* Mongo Atalas
+
+however dependant on existing tech stack available which would normally be a k8s cluster migrating to k8s should be a simple task as we are using docker containers and deploy using `helm` charts:
+- Kubernetes
+- Helm
+
+but to go truly serverless would be:
+- AWS API Gateway (auth with token)
+- AWS Lambda
+- AWS Dynamodb
+
 ### SRE
 * S3 Logs with a dedicated bucket S3 Log bucket
 * ALB Access logs to S3 bucket 
@@ -208,6 +227,7 @@ Mongodb Atlas was decided due to the simplicity of hosting a Mongodb Cluster and
 Authentication on the API END Points was not implemented due to time constraints but would be recommended
 
 ## Roadmap
-Authentication via API Keys for end points
+* Authentication via API Keys for end points
+* Build a front end for End Point
 
 
